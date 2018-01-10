@@ -1,0 +1,5 @@
+{
+    "terminal.integrated.env.windows": {
+        "PATH": "C:\\Users\\Rory\\.platformio\\penv\\Scripts;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\nodejs\\;C:\\ProgramData\\chocolatey\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files (x86)\\MHV AVR Tools\\bin;C:\\Program Files\\Calibre2\\;C:\\Users\\Rory\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Rory\\AppData\\Roaming\\npm;C:\\Program Files\\Microsoft VS Code\\bin;C:\\Program Files\\Sublime Text 3;;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\nodejs\\;C:\\ProgramData\\chocolatey\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files (x86)\\MHV AVR Tools\\bin;C:\\Program Files\\Calibre2\\;C:\\Users\\Rory\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Rory\\AppData\\Roaming\\npm;C:\\Program Files\\Microsoft VS Code\\bin;C:\\Program Files\\Sublime Text 3;"
+    }
+}
