@@ -53,6 +53,6 @@ void console_put_ch(char ch) {
 
 void console_put_number(uint16_t number) {
   char buffer[8];
-  snprintf(buffer, 2, "%d; ", number);
+  snprintf(buffer, 8, "%d; ", number);
   UG_ConsolePutString(buffer);
 }

@@ -11,10 +11,12 @@ static uint8_t _rxBuffMem[UART_BUFFER_SIZE], _txBuffMem[UART_BUFFER_SIZE];
 ISR(USART0_RX_vect) {
   uint8_t data = UDR0;
   if (ring_buffer_put(_rxBuffIndex, &data) == 1){
-    if (data == 's') {
-      uart_command = SET;
-    } else if (data == 'g') {
-      uart_command = GET;
+    if (uart_command == NIL){
+      if (data == 's') {
+        uart_command = SET;
+      } else if (data == 'g') {
+        uart_command = GET;
+      }
     }
   }
 }

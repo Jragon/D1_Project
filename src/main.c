@@ -23,25 +23,23 @@ int main(void) {
 
   draw_property(&setpoint);
 
-  int i = 0;
   uint8_t data;
-  char buffer[100];
+  int set_flag = 0;
 
   while (1) {
     if (uart_command != NIL) {
       if (uart_command == SET) {
-        UG_ConsolePutString("\nSET\n");
         if (uart_get(&data)) {
-          snprintf(buffer, 100, "%d; ", data);
-          UG_ConsolePutString(buffer);
-
-          if (data != 's') {
+          if (set_flag) {
+            UG_ConsolePutString("\nSET: ");
+            console_put_number(data);
             setpoint.val = data;
             draw_pval(&setpoint);
             uart_command = NIL;
+            set_flag = 0;
+          } else if (data == 's') {
+            set_flag = 1;
           }
-        } else {
-          uart_command = NIL;
         }
       } else if (uart_command == GET) {
         uart_put(&setpoint.val);
