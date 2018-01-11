@@ -13,7 +13,11 @@ typedef struct {
 
 void gui_init();
 uint16_t strwidth(char *str);
-void drawProperty(Property *prop);
+void draw_property(Property *prop);
+void draw_plabel(Property *prop);
+void draw_pval(Property *prop);
+void console_put_ch(char ch);
+void console_put_number(uint16_t number);
 
 UG_GUI gui;
 

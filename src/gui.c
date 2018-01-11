@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "gui.h"
 
 void _lcd_pset(UG_S16 x, UG_S16 y, UG_COLOR c) { draw_pixel(x, y, c); }
@@ -14,11 +15,19 @@ void gui_init() {
   UG_ConsolePutString("Hey!");
 }
 
-void drawProperty(Property *prop) {
-  char valstr[15];
-  snprintf(valstr, 15, "%d", prop->val);
+void draw_property(Property *prop) {
+  draw_plabel(prop);
+  draw_pval(prop);
+}
 
+void draw_plabel(Property *prop) {
   UG_PutString(prop->x, prop->y, prop->label);
+}
+
+void draw_pval(Property *prop) {
+  char valstr[15];
+  snprintf(valstr, 15, "%3d", prop->val);
+
   UG_PutString(prop->x + strwidth(prop->label), prop->y, valstr);
 }
 
@@ -34,4 +43,16 @@ uint16_t strwidth(char *str) {
   }
 
   return width;
+}
+
+void console_put_ch(char ch) {
+  char str[2] = "\0";
+  str[0] = ch;
+  UG_ConsolePutString(str);
+}
+
+void console_put_number(uint16_t number) {
+  char buffer[8];
+  snprintf(buffer, 2, "%d; ", number);
+  UG_ConsolePutString(buffer);
 }

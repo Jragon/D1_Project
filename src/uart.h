@@ -7,6 +7,9 @@
 #define UART_PRESCALE (F_CPU / (UART_BAUD * 16L) - 1)
 #define UART_BUFFER_SIZE 16
 
+typedef enum { NIL, SET, GET } command_t;
+volatile command_t uart_command;
+
 void init_uart0();
 
 int uart_get(uint8_t *data);
