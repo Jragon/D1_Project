@@ -1,8 +1,10 @@
 #include <avr/interrupt.h>
 #include <avr/io.h>
-#include "lcd.h"
+#include <stdio.h>
+
 #include "uart.h"
-#include "UGUI/ugui.h"
+#include "gui.h"
+
 
 void init_usr_led() {
   DDRB |= _BV(PB7);
@@ -10,31 +12,28 @@ void init_usr_led() {
   PORTB &= ~_BV(PB7);
 }
 
-void lcd_pset(UG_S16 x, UG_S16 y, UG_COLOR c) { 
-  draw_pixel(x, y, c); 
-}
-
-UG_GUI gui;
-
 int main(void) {
   init_uart0();
   init_usr_led();
-
-  init_lcd();
-  UG_Init(&gui, lcd_pset, 240, 320);
-  UG_FontSelect(&FONT_6X8);
-
+  gui_init();
+  
   sei();
+
+  Property setpoint = {.x = 0, .y = 0, .label = "SPT: ", .val = 0};
+
+  drawProperty(&setpoint);
+
+  char buffer[100];
+
+  for (uint8_t i = 0; i < 25; i++) {
+    snprintf(buffer, 100, "hello %d\n", i);
+    UG_ConsolePutString(buffer);
+  }
 
   unsigned char string[15];
   uint8_t data;
   int j;
   int i = 0;
-
-  UG_ConsoleSetArea(0, 120, 240, 200);
-  UG_ConsoleSetForecolor(C_GREEN_YELLOW);
-  UG_ConsoleSetBackcolor(C_BLACK);
-  UG_ConsolePutString("Hey!");
 
   while (1) {
     if (uart_get(&data) == 1) {
