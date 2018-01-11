@@ -131,3 +131,13 @@ void display_string(char *str)
 		display_char(str[i]);
 }
 
+void draw_pixel(uint16_t x, uint16_t y, uint16_t col) {
+  write_cmd(COLUMN_ADDRESS_SET);
+  write_data16(x);
+  write_data16(x);
+  write_cmd(PAGE_ADDRESS_SET);
+  write_data16(y);
+  write_data16(y);
+  write_cmd(MEMORY_WRITE);
+  write_data16(col);
+}
