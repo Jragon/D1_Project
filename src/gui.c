@@ -26,7 +26,7 @@ void draw_plabel(Property *prop) {
 
 void draw_pval(Property *prop) {
   char valstr[15];
-  snprintf(valstr, 15, "%3d", prop->val);
+  snprintf(valstr, 15, "%10.8f", prop->val);
 
   UG_PutString(prop->x + strwidth(prop->label), prop->y, valstr);
 }

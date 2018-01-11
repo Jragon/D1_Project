@@ -8,7 +8,7 @@
 typedef struct {
   uint16_t x, y;
   char *label;
-  uint8_t val;
+  float val;
 } Property;
 
 void gui_init();
