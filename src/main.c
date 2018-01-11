@@ -18,7 +18,7 @@ int main (void)
 
     sei();
     
-    char string[15];
+    unsigned char string[15];
     uint8_t data;
     int j;
     int i = 0;
@@ -26,11 +26,13 @@ int main (void)
     {
         if(uart_get(&data) == 1){
             if ((char) data != '\n'){
+                
                 string[i] = (char) data;
                 i++;
             } else {
                 for (j = 0; j < i; j++){
-                    uart_put_ch(string[j]);
+                    uart_put((uint8_t *) &string[j]);
+                    display_char(string[j]);
                 }
                 i = 0;
             }

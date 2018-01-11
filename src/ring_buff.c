@@ -1,7 +1,4 @@
 #include "ring_buff.h"
-#include "lcd.h"
-#define MAX_BUFFS 1 // maximum number of ring buffers supported by the array
-
 
 // holds head and tail, compaired to rbAttributes
 struct ring_buffer

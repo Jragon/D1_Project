@@ -3,8 +3,8 @@
 
 #include "uart.h"
 
-static rbIndex_t _rxBuffIndex;
-static uint8_t _rxBuffMem[16];
+static rbIndex_t _rxBuffIndex, _txBuffIndex;
+static uint8_t _rxBuffMem[UART_BUFFER_SIZE], _txBuffMem[UART_BUFFER_SIZE];
 
 // receive bit isr
 ISR(USART0_RX_vect)
@@ -12,6 +12,19 @@ ISR(USART0_RX_vect)
     uint8_t data = UDR0;
     if (ring_buffer_put(_rxBuffIndex, &data) == 1)
         PINB |= _BV(PB7);
+}
+
+// UDR0 empty isr, transmit
+ISR(USART0_UDRE_vect)
+{
+    uint8_t data;
+    // if there is data
+    if (ring_buffer_get(_txBuffIndex, &data) == 1) {
+        UDR0 = data;
+    } else {
+        // disable the interrupt because all the data has been transmitted
+        UCSR0B &= ~_BV(UDRIE0);
+    }
 }
 
 void init_uart0()
@@ -25,7 +38,8 @@ void init_uart0()
     UBRR0L = UART_PRESCALE;
 
     // init ring buffs
-    ring_buffer_init(&_rxBuffIndex, 16, _rxBuffMem);
+    ring_buffer_init(&_rxBuffIndex, UART_BUFFER_SIZE, _rxBuffMem);
+    ring_buffer_init(&_txBuffIndex, UART_BUFFER_SIZE, _txBuffMem);
 }
 
 int uart_get(uint8_t *data)
@@ -43,12 +57,25 @@ int uart_get(uint8_t *data)
     }
 }
 
+int uart_put(uint8_t *data)
+{
+    if (ring_buffer_put(_txBuffIndex, data) == 1) {
+        // enable transfer complete interrupt
+        // the interrupt fires if UDR0 is empty, which means as soon
+        // as the interrupt is enabled they the interrupt will start
+        UCSR0B |= _BV(UDRIE0);
+        return 1;
+    } else {
+        // ring buffer full or something
+        return 0;
+    }
+}
+
 void uart_put_ch(char ch)
 {
     if (ch == '\n')
         uart_put_ch('\r');
 
-    while (!(UCSR0A & _BV(UDRE0)))
-        ;
+    while (!(UCSR0A & _BV(UDRE0)));
     UDR0 = ch;
 }
