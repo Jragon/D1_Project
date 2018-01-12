@@ -3,15 +3,11 @@
 
 #include "property.h"
 
-static volatile uint8_t property_count = 0;
-
-ISR(TIMER1_COMPA_vect) {
-  update_property_flag = 1;
-}
+ISR(TIMER1_COMPA_vect) { update_property_flag = 1; }
 
 void init_property(uint16_t sample_rate) {
-  TCCR1B = _BV(WGM12); // CTC Mode
-  TCCR1B |= _BV(CS12); // Prescaler: F_CPU / 256
+  TCCR1B = _BV(WGM12);  // CTC Mode
+  TCCR1B |= _BV(CS12);  // Prescaler: F_CPU / 256
 
   // F_CPU/prescalar = 12000000/64 = 187500 ticks per second
   // capable of doing 1Hz
@@ -25,9 +21,9 @@ void init_property(uint16_t sample_rate) {
 }
 
 int add_property(property_t *prop) {
-  if (property_count < MAX_PROPERTIES) {
-    properties[property_count] = prop;
-    property_count++;
+  if (properties.count < MAX_PROPERTIES) {
+    properties.p[properties.count] = prop;
+    properties.count++;
   } else {
     // no more space in the properties array
     return 0;
@@ -57,12 +53,17 @@ void update_properties() {
     // disable interrupt
     TIMSK1 &= ~_BV(OCIE0A);
 
-    for(int i = 0; i < property_count; i++) {
-      properties[i]->update((property_t *) properties[i]);
+    for (int i = 0; i < properties.count; i++) {
+      if (properties.p[i]->update != 0) {
+        properties.p[i]->update((property_t *)properties.p[i],
+                                properties.graph);
+      }
     }
 
-    if (update_graph_flag == 1)
-      update_graph();
+    if (update_graph_flag == 1) {
+      draw_graph(properties.graph);
+      update_graph_flag = 0;
+    }
 
     update_property_flag = 0;
     // enable interrupt

@@ -4,7 +4,9 @@
 #include <avr/io.h>
 #include "gui.h"
 
-typedef struct graph_point  {
+#define MAX_DATA_SET_PER_GRAPH 2
+
+typedef struct graph_point {
   uint16_t x, y;
   struct graph_point *next;
 } graph_point_t;
@@ -17,12 +19,18 @@ typedef struct {
 } graph_display_options_t;
 
 typedef struct {
+  char* name;
   graph_point_t *head;
-  graph_point_t *tail;
-  uint8_t size, count, maxvalue;
+  uint8_t count;
+  UG_COLOR colour;
+} graph_dataset_t;
+
+typedef struct {
+  char* title;
+  graph_dataset_t *dataset[MAX_DATA_SET_PER_GRAPH];
+  uint8_t size, maxvalue, dataset_count;
   graph_display_options_t disp;
 } graph_t;
-
 
 graph_point_t *new_point(uint16_t x, uint16_t y, graph_point_t *next);
 graph_point_t *prepend_point(uint16_t x, uint16_t y, graph_point_t *head);
@@ -31,6 +39,12 @@ graph_t create_graph(uint8_t size, uint16_t x, uint16_t y, uint16_t width,
                      uint16_t height);
 void clear_graph(graph_t *graph);
 void draw_graph(graph_t *graph);
-void add_point(uint16_t x, uint16_t y, graph_t *graph);
+void add_point(uint16_t x, uint16_t y, graph_t *graph,
+               graph_dataset_t *dataset);
+
+graph_dataset_t create_dataset(char *name, UG_COLOR colour);
+void add_dataset(graph_t *graph, graph_dataset_t *dataset);
+void draw_dataset_points(graph_t *graph, graph_dataset_t *dataset);
+
 
 #endif

@@ -11,32 +11,25 @@
 
 void init_usr_led() { DDRB |= _BV(PB7); }
 
-void voltage_update(property_t *prop) {
+void voltage_update(property_t *prop, graph_t *graph) {
   static float lastval = 0;
-  static uint8_t count = 0;
 
   if (trunc(1000. * lastval) != trunc(1000. * prop->val)) {
-    draw_pval(prop); 
+    draw_pval(prop);
     lastval = prop->val;
   }
 
-  if (prop->graph != 0) {
-    add_point(count, prop->val, prop->graph);
-    draw_graph(prop->graph);
-    count++;
-
+  if (prop->dataset != 0) {
+    add_point(prop->dataset->count, prop->val, graph, prop->dataset);
+    console_put_number(prop->dataset->count);
     update_graph_flag = 1;
   }
 }
 
-void setpoint_update(property_t *prop) {
-  static uint8_t count = 0;
-
-  if (prop->graph != 0) {
-    add_point(count, prop->val, prop->graph);
-    draw_graph(prop->graph);
-    count++;
-
+void setpoint_update(property_t *prop, graph_t *graph) {
+  if (prop->dataset != 0) {
+    add_point(prop->dataset->count, prop->val + 10, graph, prop->dataset);
+    console_put_number(prop->dataset->count);
     update_graph_flag = 1;
   }
 }
@@ -45,17 +38,42 @@ int main(void) {
   init_uart0();
   init_usr_led();
   gui_init();
-  init_property(3);
+  init_property(1);
 
   sei();
 
-  property_t setpoint = {.x = 0, .y = 0, .label = "SPT: ", .val = M_E};
+  graph_t maingraph = create_graph(60, 0, 50, 240, 100);
+  maingraph.disp.draw_line = 1;
+  maingraph.disp.draw_point = 0;
+  maingraph.title = "Tiotal1";
+
+  properties.graph = &maingraph;
+
+  console_put_number(maingraph.dataset_count);
+
+  graph_dataset_t voltage_dataset = create_dataset("Voltage", C_YELLOW);
+  add_dataset(&maingraph, &voltage_dataset);
+
+  graph_dataset_t setpoint_dataset = create_dataset("Setpoint", C_BLUE);
+  add_dataset(&maingraph, &setpoint_dataset);
+
+  console_put_number(maingraph.dataset_count);
+  UG_ConsolePutString(maingraph.title);
+  UG_ConsolePutString("\n");
+
+  property_t setpoint = {.x = 0,
+                         .y = 0,
+                         .label = "SPT: ",
+                         .val = M_E,
+                         .update = setpoint_update,
+                         .dataset = &setpoint_dataset};
   property_t voltage = {.x = 0,
                         .y = gui.font.char_height,
                         .label = "Voltage: ",
                         .val = 0,
-                        .update = voltage_update};
-  //add_property(&setpoint);
+                        .update = voltage_update,
+                        .dataset = &voltage_dataset};
+  add_property(&setpoint);
   draw_property(&setpoint);
 
   add_property(&voltage);
@@ -68,10 +86,6 @@ int main(void) {
   // float last_val = 0;
   // char buffer[15];
 
-  graph_t voltage_graph = create_graph(60, 0, 50, 240, 100);
-  voltage.graph = &voltage_graph;
-  voltage_graph.disp.draw_line = 1;
-  voltage_graph.disp.draw_point = 0;
   // float gradient = (voltage_graph.disp.height / voltage_graph.size);
   // uint16_t y;
   // for (i = 1; i < voltage_graph.size + 1; i++) {

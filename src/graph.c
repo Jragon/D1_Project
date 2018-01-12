@@ -3,6 +3,8 @@
 
 static uint16_t _get_x_val(uint8_t count, uint16_t x_offset,
                            graph_display_options_t* opts);
+static uint16_t _get_y_val(uint16_t y, uint16_t starty, uint16_t height,
+                           uint16_t margin);
 
 graph_point_t* new_point(uint16_t x, uint16_t y, graph_point_t* next) {
   graph_point_t* new = (graph_point_t*)malloc(sizeof(graph_point_t));
@@ -48,12 +50,23 @@ graph_t create_graph(uint8_t size, uint16_t startx, uint16_t starty,
                                        .outline_colour = C_FLORAL_WHITE,
                                        .margin = 5};
 
-  graph_t graph = {
-      .head = 0, .tail = 0, .size = size, .count = 0, .disp = disp_opts};
+  graph_t graph = {.size = size, .disp = disp_opts};
 
   clear_graph(&graph);
 
   return graph;
+}
+
+graph_dataset_t create_dataset(char* name, UG_COLOR colour) {
+  return (graph_dataset_t){
+      .name = name, .count = 0, .head = 0, .colour = colour};
+}
+
+void add_dataset(graph_t* graph, graph_dataset_t* dataset) {
+  if (graph->dataset_count < MAX_DATA_SET_PER_GRAPH) {
+    graph->dataset[graph->dataset_count] = dataset;
+    graph->dataset_count++;
+  }
 }
 
 void clear_graph(graph_t* graph) {
@@ -72,36 +85,41 @@ void draw_graph_frame(graph_t* graph) {
 }
 
 void draw_graph(graph_t* graph) {
-  graph_display_options_t* opts = &graph->disp;
-
   clear_graph(graph);
   draw_graph_frame(graph);
 
-  graph_point_t* cursor = graph->head;
+  for (int i = 0; i < graph->dataset_count; i++) {
+    draw_dataset_points(graph, graph->dataset[i]);
+  }
+}
+
+void draw_dataset_points(graph_t* graph, graph_dataset_t* dataset) {
+  graph_display_options_t* opts = &graph->disp;
 
   uint8_t count = 0;
   uint16_t x1, y1;
-  // times by 100 to avoid floating point math
-  uint16_t x_offset = (opts->width * (uint16_t)100) / graph->size;
+
+  uint16_t x_offset =
+      ((opts->width - opts->margin) * (uint16_t)100) / graph->size;
   uint16_t height_margin = opts->height - opts->margin;
-  uint16_t y_start = opts->starty + height_margin;
+
+  graph_point_t* cursor = dataset->head;
 
   while (cursor != 0) {
     if (cursor->y <= height_margin) {
       // draw left to right
       x1 = _get_x_val(count, x_offset, opts);
-      y1 = y_start - cursor->y;
+      y1 = _get_y_val(cursor->y, opts->starty, opts->height, opts->margin);
 
       if (opts->draw_point)
-        UG_DrawCircle(x1, y1, opts->circle_radius, opts->forecolour);
+        UG_DrawCircle(x1, y1, opts->circle_radius, dataset->colour);
 
       if (opts->draw_line) {
         if (cursor->next != 0) {
           UG_DrawLine(x1, y1, _get_x_val(count + 1, x_offset, opts),
-                      (cursor->next->y <= height_margin)
-                          ? y_start - cursor->next->y
-                          : opts->starty + opts->margin,
-                      opts->forecolour);
+                      _get_y_val(cursor->next->y, opts->starty, opts->height,
+                                 opts->margin),
+                      dataset->colour);
         }
       }
     }
@@ -111,15 +129,23 @@ void draw_graph(graph_t* graph) {
   }
 }
 
-void add_point(uint16_t x, uint16_t y, graph_t* graph) {
-  graph->head = prepend_point(x, y, graph->head);
-  graph->count++;
-  if (graph->count >= graph->size) {
-    remove_back(graph->head);
+void add_point(uint16_t x, uint16_t y, graph_t* graph,
+               graph_dataset_t* dataset) {
+  dataset->head = prepend_point(x, y, dataset->head);
+  if (dataset->count >= graph->size) {
+    remove_back(dataset->head);
+  } else {
+    dataset->count++;
   }
 }
 
 uint16_t _get_x_val(uint8_t count, uint16_t x_offset,
                     graph_display_options_t* opts) {
   return opts->width - opts->margin - (count * x_offset) / 100;
+}
+
+uint16_t _get_y_val(uint16_t y, uint16_t starty, uint16_t height,
+                    uint16_t margin) {
+  return (y <= height - margin) ? (starty + height - margin) - y
+                                : starty + margin;
 }
