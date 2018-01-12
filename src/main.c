@@ -35,13 +35,16 @@ int main(void) {
   float last_val = 0;
   char buffer[15];
 
-  graph_t graph = create_graph(10, 0, 50, 240, 100);
-  for (i = 1; i < 11; i++)
-  {
-    add_point(0, 50/i, &graph);
+  graph_t voltage_graph = create_graph(60, 0, 50, 240, 100);
+  float gradient = (voltage_graph.disp.height / voltage_graph.size);
+  uint16_t y;
+  for (i = 1; i < voltage_graph.size + 1; i++) {
+    y = (i - 10) * (i - 10);
+    add_point(0, y, &voltage_graph); 
   }
+  voltage_graph.disp.draw_line = 1;
 
-  draw_graph(&graph);
+  draw_graph(&voltage_graph);
 
   while (1) {
     if (uart_command != NIL) {
