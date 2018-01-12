@@ -57,9 +57,11 @@ graph_t create_graph(uint8_t size, uint16_t startx, uint16_t starty,
 }
 
 void clear_graph(graph_t* graph) {
-  UG_FillFrame(graph->disp.startx, graph->disp.starty,
-               graph->disp.startx + graph->disp.width,
-               graph->disp.starty + graph->disp.height, graph->disp.backcolour);
+  UG_FillFrame(graph->disp.startx + graph->disp.margin,
+               graph->disp.starty + graph->disp.margin,
+               graph->disp.startx + graph->disp.width - graph->disp.margin,
+               graph->disp.starty + graph->disp.height - graph->disp.margin,
+               graph->disp.backcolour);
 }
 
 void draw_graph_frame(graph_t* graph) {
@@ -78,10 +80,9 @@ void draw_graph(graph_t* graph) {
   graph_point_t* cursor = graph->head;
 
   uint8_t count = 0;
-  uint16_t x1, y1, y2;
+  uint16_t x1, y1;
   // times by 100 to avoid floating point math
   uint16_t x_offset = (opts->width * (uint16_t)100) / graph->size;
-  console_put_number(x_offset);
   uint16_t height_margin = opts->height - opts->margin;
   uint16_t y_start = opts->starty + height_margin;
 
@@ -120,5 +121,5 @@ void add_point(uint16_t x, uint16_t y, graph_t* graph) {
 
 uint16_t _get_x_val(uint8_t count, uint16_t x_offset,
                     graph_display_options_t* opts) {
-  return opts->width - (count * x_offset) / 100 + opts->circle_radius;
+  return opts->width - opts->margin - (count * x_offset) / 100;
 }

@@ -15,22 +15,6 @@ void gui_init() {
   UG_ConsolePutString("Hey!");
 }
 
-void draw_property(Property *prop) {
-  draw_plabel(prop);
-  draw_pval(prop);
-}
-
-void draw_plabel(Property *prop) {
-  UG_PutString(prop->x, prop->y, prop->label);
-}
-
-void draw_pval(Property *prop) {
-  char valstr[15];
-  snprintf(valstr, 15, "%10.8f", prop->val);
-
-  UG_PutString(prop->x + strwidth(prop->label), prop->y, valstr);
-}
-
 uint16_t strwidth(char *str) {
   char ch, chwidth;
   uint16_t width = 0;

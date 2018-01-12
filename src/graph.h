@@ -19,7 +19,7 @@ typedef struct {
 typedef struct {
   graph_point_t *head;
   graph_point_t *tail;
-  uint8_t size, count;
+  uint8_t size, count, maxvalue;
   graph_display_options_t disp;
 } graph_t;
 
