@@ -9,7 +9,7 @@ void gui_init() {
   UG_FontSelect(&FONT_6X8);
 
   // console setup
-  UG_ConsoleSetArea(0, 120, 240, 200);
+  UG_ConsoleSetArea(0, 200, 240, 320);
   UG_ConsoleSetForecolor(C_GREEN_YELLOW);
   UG_ConsoleSetBackcolor(C_BLACK);
   UG_ConsolePutString("Hey!");

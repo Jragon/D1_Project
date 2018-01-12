@@ -6,6 +6,7 @@
 
 #include "gui.h"
 #include "uart.h"
+#include "graph.h"
 
 void init_usr_led() {
   DDRB |= _BV(PB7);
@@ -33,6 +34,14 @@ int main(void) {
   float control_output = 0;
   float last_val = 0;
   char buffer[15];
+
+  graph_t graph = create_graph(10, 0, 50, 240, 100);
+  for (i = 1; i < 11; i++)
+  {
+    add_point(0, 50/i, &graph);
+  }
+
+  draw_graph(&graph);
 
   while (1) {
     if (uart_command != NIL) {
