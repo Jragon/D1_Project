@@ -21,7 +21,8 @@ typedef struct {
 typedef struct {
   char* name;
   graph_point_t *head;
-  uint8_t count;
+  uint8_t count, redraw;
+  uint16_t finalval;
   UG_COLOR colour;
 } graph_dataset_t;
 
@@ -34,7 +35,7 @@ typedef struct {
 
 graph_point_t *new_point(uint16_t x, uint16_t y, graph_point_t *next);
 graph_point_t *prepend_point(uint16_t x, uint16_t y, graph_point_t *head);
-graph_point_t *remove_back(graph_point_t *head);
+graph_point_t *remove_back(graph_dataset_t *dataset);
 graph_t create_graph(uint8_t size, uint16_t x, uint16_t y, uint16_t width,
                      uint16_t height);
 void clear_graph(graph_t *graph);
@@ -44,7 +45,7 @@ void add_point(uint16_t x, uint16_t y, graph_t *graph,
 
 graph_dataset_t create_dataset(char *name, UG_COLOR colour);
 void add_dataset(graph_t *graph, graph_dataset_t *dataset);
-void draw_dataset_points(graph_t *graph, graph_dataset_t *dataset);
-
-
+void draw_dataset_points(graph_t *graph, graph_dataset_t *dataset,
+                         UG_COLOR colour);
+                         
 #endif

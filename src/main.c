@@ -21,16 +21,17 @@ void voltage_update(property_t *prop, graph_t *graph) {
 
   if (prop->dataset != 0) {
     add_point(prop->dataset->count, prop->val, graph, prop->dataset);
-    console_put_number(prop->dataset->count);
     update_graph_flag = 1;
   }
 }
 
 void setpoint_update(property_t *prop, graph_t *graph) {
+  static uint8_t count = 0;
   if (prop->dataset != 0) {
-    add_point(prop->dataset->count, prop->val + 10, graph, prop->dataset);
-    console_put_number(prop->dataset->count);
+    add_point(count, sin(count*0.25) * 15 + 30, graph,
+              prop->dataset);
     update_graph_flag = 1;
+    count++;
   }
 }
 
@@ -38,7 +39,7 @@ int main(void) {
   init_uart0();
   init_usr_led();
   gui_init();
-  init_property(1);
+  init_property(20);
 
   sei();
 
