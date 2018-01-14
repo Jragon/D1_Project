@@ -1,8 +1,8 @@
 #include <avr/interrupt.h>
 #include <avr/io.h>
 
-#include "uart.h"
 #include "gui.h"
+#include "uart.h"
 
 static rbIndex_t _rxBuffIndex, _txBuffIndex;
 static uint8_t _rxBuffMem[UART_BUFFER_SIZE], _txBuffMem[UART_BUFFER_SIZE];
@@ -10,8 +10,8 @@ static uint8_t _rxBuffMem[UART_BUFFER_SIZE], _txBuffMem[UART_BUFFER_SIZE];
 // receive bit isr
 ISR(USART0_RX_vect) {
   uint8_t data = UDR0;
-  if (ring_buffer_put(_rxBuffIndex, &data) == 1){
-    if (uart_command == NIL){
+  if (ring_buffer_put(_rxBuffIndex, &data) == 1) {
+    if (uart_command == NIL) {
       if (data == 's') {
         uart_command = SET;
       } else if (data == 'g') {

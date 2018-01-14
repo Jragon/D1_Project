@@ -19,7 +19,7 @@ typedef struct {
 } graph_display_options_t;
 
 typedef struct {
-  char* name;
+  char *name;
   graph_point_t *head;
   uint8_t count, redraw;
   uint16_t finalval;
@@ -27,7 +27,7 @@ typedef struct {
 } graph_dataset_t;
 
 typedef struct {
-  char* title;
+  char *title;
   graph_dataset_t *dataset[MAX_DATA_SET_PER_GRAPH];
   uint8_t size, maxvalue, dataset_count;
   graph_display_options_t disp;
@@ -47,5 +47,5 @@ graph_dataset_t create_dataset(char *name, UG_COLOR colour);
 void add_dataset(graph_t *graph, graph_dataset_t *dataset);
 void draw_dataset_points(graph_t *graph, graph_dataset_t *dataset,
                          UG_COLOR colour);
-                         
+
 #endif

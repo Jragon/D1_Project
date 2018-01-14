@@ -7,6 +7,7 @@
 #include "graph.h"
 #include "gui.h"
 #include "property.h"
+#include "rotary.h"
 #include "uart.h"
 
 void init_usr_led() { DDRB |= _BV(PB7); }
@@ -14,9 +15,11 @@ void init_usr_led() { DDRB |= _BV(PB7); }
 void voltage_update(property_t *prop, graph_t *graph) {
   static float lastval = 0;
 
+  prop->val += encodeRotaryCount();
+
   if (trunc(1000. * lastval) != trunc(1000. * prop->val)) {
-    draw_pval(prop);
     lastval = prop->val;
+    draw_pval(prop);
   }
 
   if (prop->dataset != 0) {
@@ -28,8 +31,7 @@ void voltage_update(property_t *prop, graph_t *graph) {
 void setpoint_update(property_t *prop, graph_t *graph) {
   static uint8_t count = 0;
   if (prop->dataset != 0) {
-    add_point(count, sin(count*0.25) * 15 + 30, graph,
-              prop->dataset);
+    add_point(count, sin(count * 0.25) * 15 + 30, graph, prop->dataset);
     update_graph_flag = 1;
     count++;
   }
@@ -40,6 +42,7 @@ int main(void) {
   init_usr_led();
   gui_init();
   init_property(20);
+  init_rotary();
 
   sei();
 
@@ -121,7 +124,7 @@ int main(void) {
 
     // generate value for voltage using setpoint
     control_output = setpoint.val - voltage.val;
-    voltage.val += control_output * (1 - (float)pow(M_E, -(i / 100)));
+    // voltage.val += control_output * (1 - (float)pow(M_E, -(i / 100)));
     i++;
 
     update_properties();

@@ -1,5 +1,5 @@
-#include <stdio.h>
 #include "gui.h"
+#include <stdio.h>
 
 void _lcd_pset(UG_S16 x, UG_S16 y, UG_COLOR c) { draw_pixel(x, y, c); }
 

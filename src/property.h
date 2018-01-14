@@ -2,13 +2,13 @@
 #define PROPERTY_H
 
 #include <avr/io.h>
-#include "gui.h"
 #include "graph.h"
+#include "gui.h"
 
 #define MAX_PROPERTIES 2
 
 struct prop;
-typedef void (* update_callback_t)(struct prop *, graph_t *);
+typedef void (*update_callback_t)(struct prop *, graph_t *);
 
 typedef struct prop {
   uint16_t x, y;

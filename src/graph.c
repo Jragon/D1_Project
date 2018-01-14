@@ -126,14 +126,14 @@ void draw_dataset_points(graph_t* graph, graph_dataset_t* dataset,
                           opts->margin);
           if (dataset->redraw != 0) {
             UG_DrawLine(
-                x1, y2,
-                _get_x_val(count + 1, x_offset, opts),
+                x1, y2, _get_x_val(count + 1, x_offset, opts),
                 _get_y_val((count == graph->size - 2) ? dataset->finalval
                                                       : cursor->next->next->y,
                            opts->starty, opts->height, opts->margin),
                 C_BLACK);
           }
-          UG_DrawLine(x1, y1, _get_x_val(count + 1, x_offset, opts), y2, colour);
+          UG_DrawLine(x1, y1, _get_x_val(count + 1, x_offset, opts), y2,
+                      colour);
         }
       }
     }
