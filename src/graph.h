@@ -12,8 +12,8 @@ typedef struct graph_point {
 } graph_point_t;
 
 typedef struct {
-  uint16_t width, height, startx, starty;
-  uint8_t draw_point, draw_line;
+  uint16_t width, height, startx, starty, legend_height;
+  uint8_t draw_point, draw_line, draw_legend;
   uint8_t circle_radius, margin;
   UG_COLOR forecolour, backcolour, outline_colour;
 } graph_display_options_t;
@@ -47,5 +47,7 @@ graph_dataset_t create_dataset(char *name, UG_COLOR colour);
 void add_dataset(graph_t *graph, graph_dataset_t *dataset);
 void draw_dataset_points(graph_t *graph, graph_dataset_t *dataset,
                          UG_COLOR colour);
+
+void draw_graph_legend(graph_t *graph);
 
 #endif

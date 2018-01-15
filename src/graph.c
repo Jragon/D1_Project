@@ -49,7 +49,9 @@ graph_t create_graph(uint8_t size, uint16_t startx, uint16_t starty,
                                        .forecolour = C_BLUE,
                                        .backcolour = C_BLACK,
                                        .outline_colour = C_FLORAL_WHITE,
-                                       .margin = 5};
+                                       .margin = 5,
+                                       .draw_legend = 0,
+                                       .legend_height = 0};
 
   graph_t graph = {.size = size, .disp = disp_opts};
 
@@ -89,6 +91,25 @@ void draw_graph_frame(graph_t* graph) {
                graph->disp.outline_colour);
 }
 
+void draw_graph_legend(graph_t* graph) {
+  uint16_t x = graph->disp.startx + graph->disp.margin,
+           y = graph->disp.starty + graph->disp.margin;
+
+  for (int i = 0; i < graph->dataset_count; i++) {
+    UG_FillFrame(x, y + gui.char_v_space, x + gui.font.char_height,
+                 y + gui.font.char_height - gui.char_v_space,
+                 graph->dataset[i]->colour);
+    UG_PutString(x + gui.font.char_height + graph->disp.margin, y,
+                 graph->dataset[i]->name);
+
+    x += strwidth(graph->dataset[i]->name) + gui.font.char_height +
+         2 * graph->disp.margin;
+  }
+  graph->disp.draw_legend = 1;
+  graph->disp.legend_height =
+      graph->disp.margin + gui.font.char_height + gui.char_v_space;
+}
+
 void draw_graph(graph_t* graph) {
   // clear_graph(graph);
   draw_graph_frame(graph);
@@ -98,7 +119,6 @@ void draw_graph(graph_t* graph) {
   }
 }
 
-// make y transfrom function callback -- too high soz
 void draw_dataset_points(graph_t* graph, graph_dataset_t* dataset,
                          UG_COLOR colour) {
   graph_display_options_t* opts = &graph->disp;
@@ -108,28 +128,36 @@ void draw_dataset_points(graph_t* graph, graph_dataset_t* dataset,
 
   uint16_t x_offset =
       ((opts->width - opts->margin) * (uint16_t)100) / graph->size;
-  uint16_t height_margin = opts->height - opts->margin;
+
+  uint16_t graph_height = opts->height;
+  uint16_t graph_starty = opts->starty;
+
+  // deal with legend space
+  if (graph->disp.draw_legend) {
+    graph_height -= graph->disp.legend_height;
+    graph_starty += graph->disp.legend_height;
+  }
 
   graph_point_t* cursor = dataset->head;
 
   while (cursor != 0) {
-    if (cursor->y <= height_margin) {
+    if (cursor->y <= graph_height - opts->margin) {
       // draw left to right
       x1 = _get_x_val(count, x_offset, opts);
-      y1 = _get_y_val(cursor->y, opts->starty, opts->height, opts->margin);
+      y1 = _get_y_val(cursor->y, graph_starty, graph_height, opts->margin);
 
       if (opts->draw_point) UG_DrawCircle(x1, y1, opts->circle_radius, colour);
 
       if (opts->draw_line) {
         if (cursor->next != 0) {
-          y2 = _get_y_val(cursor->next->y, opts->starty, opts->height,
+          y2 = _get_y_val(cursor->next->y, graph_starty, graph_height,
                           opts->margin);
           if (dataset->redraw != 0) {
             UG_DrawLine(
                 x1, y2, _get_x_val(count + 1, x_offset, opts),
                 _get_y_val((count == graph->size - 2) ? dataset->finalval
                                                       : cursor->next->next->y,
-                           opts->starty, opts->height, opts->margin),
+                           graph_starty, graph_height, opts->margin),
                 C_BLACK);
           }
           UG_DrawLine(x1, y1, _get_x_val(count + 1, x_offset, opts), y2,

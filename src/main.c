@@ -61,6 +61,8 @@ int main(void) {
   graph_dataset_t setpoint_dataset = create_dataset("Setpoint", C_BLUE);
   add_dataset(&maingraph, &setpoint_dataset);
 
+  draw_graph_legend(&maingraph);
+
   console_put_number(maingraph.dataset_count);
   UG_ConsolePutString(maingraph.title);
   UG_ConsolePutString("\n");
