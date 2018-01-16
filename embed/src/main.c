@@ -88,7 +88,7 @@ int main(void) {
   uint8_t data;
   int set_flag = 0;
   long i = 0;
-  float control_output = 0;
+  // float control_output = 0;
   // float last_val = 0;
   // char buffer[15];
 
@@ -119,13 +119,23 @@ int main(void) {
           }
         }
       } else if (uart_command == GET) {
-        // uart_put(&setpoint.val);
+        uint8_t sp = (uint8_t)trunc(setpoint.val);
+        uart_put(&sp);
+        UG_ConsolePutString("\nSending: ");
+        console_put_number(sp);
+        uart_command = NIL;
+      } else if (uart_command == CONN) {
+        if (uart_put(&uart_command_char[uart_command]))
+          UG_ConsolePutString("\n** Connection Successful ** \n");
+        else
+          UG_ConsolePutString("\n** Connection Error ** \n");
+
         uart_command = NIL;
       }
     }
 
     // generate value for voltage using setpoint
-    control_output = setpoint.val - voltage.val;
+    // control_output = setpoint.val - voltage.val;
     // voltage.val += control_output * (1 - (float)pow(M_E, -(i / 100)));
     i++;
 

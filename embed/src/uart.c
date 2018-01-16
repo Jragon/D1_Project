@@ -1,11 +1,12 @@
 #include <avr/interrupt.h>
 #include <avr/io.h>
 
-#include "gui.h"
 #include "uart.h"
 
 static rbIndex_t _rxBuffIndex, _txBuffIndex;
 static uint8_t _rxBuffMem[UART_BUFFER_SIZE], _txBuffMem[UART_BUFFER_SIZE];
+
+uint8_t uart_command_char[4] = {0, 's', 'g', 'c'};
 
 // receive bit isr
 ISR(USART0_RX_vect) {
@@ -16,6 +17,8 @@ ISR(USART0_RX_vect) {
         uart_command = SET;
       } else if (data == 'g') {
         uart_command = GET;
+      } else if (data == 'c') {
+        uart_command = CONN;
       }
     }
   }
