@@ -1,0 +1,18 @@
+{
+  "build": {
+    "f_cpu": "12000000L",
+    "mcu": "atmega644p",
+    "variant": "standard"
+  },
+  "frameworks": [],
+  "name": "Il Matto",
+  "upload": {
+    "maximum_ram_size": 4096,
+    "maximum_size": 64512,
+    "protocol": "usbasp",
+    "extra_flags": "-Pusb",
+    "speed": 115200
+  },
+  "url": "https://www.ecs.soton.ac.uk/",
+  "vendor": "University of Southampton"
+}
