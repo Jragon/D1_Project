@@ -6,9 +6,9 @@
 #include <avr/io.h>
 
 
-#define CTRL_PORT	PORTA
-#define CTRL_DDR	DDRA
-#define CTRL_PIN	PINA
+#define CTRL_PORT	PORTB
+#define CTRL_DDR	DDRB
+#define CTRL_PIN	PINB
 #define DATA_PORT	PORTC
 #define DATA_DDR	DDRC
 #define DATA_PIN	PINC
@@ -29,7 +29,7 @@
 #define RS			4
 #define RD			5
 #define VSYNC		6
-#define FMARK		7
+#define FMARK		7 
 
 #define CS_lo()		CTRL_PORT &= ~_BV(CS)
 #define CS_hi()		CTRL_PORT |= _BV(CS)
