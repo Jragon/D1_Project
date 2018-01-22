@@ -5,6 +5,8 @@
 #include "gui.h"
 
 #define MAX_DATA_SET_PER_GRAPH 2
+#define GRAPH_SCALE_DIVISOR 100
+#define GRAPH_X_OFFSET_DIVISOR 100
 
 typedef struct graph_point {
   uint16_t x, y;
@@ -22,7 +24,7 @@ typedef struct {
   char *name;
   graph_point_t *head;
   uint8_t count, redraw;
-  uint16_t finalval;
+  uint16_t finalval, maxy;
   UG_COLOR colour;
 } graph_dataset_t;
 

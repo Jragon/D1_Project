@@ -15,11 +15,12 @@
 void init_usr_led() { DDRB |= _BV(PB7); }
 
 void voltage_update(property_t *prop, graph_t *graph) {
-  static float lastval = 0;
+  static uint16_t lastval = 0;
 
-  prop->val = adc_read() / 100;
+  prop->val = adc_read();
 
-  if (trunc(1000. * lastval) != trunc(1000. * prop->val)) {
+  // if (trunc(1000. * lastval) != trunc(1000. * prop->val)) {
+  if (lastval != prop->val) {
     lastval = prop->val;
     draw_pval(prop);
   }
@@ -54,7 +55,7 @@ int main(void) {
 
   ADC_START;
 
-  graph_t maingraph = create_graph(60, 0, 50, 240, 100);
+  graph_t maingraph = create_graph(150, 0, 50, 240, 100);
   maingraph.disp.draw_line = 1;
   maingraph.disp.draw_point = 0;
   maingraph.title = "Tiotal1";
@@ -64,6 +65,7 @@ int main(void) {
   console_put_number(maingraph.dataset_count);
 
   graph_dataset_t voltage_dataset = create_dataset("Voltage", C_YELLOW);
+  voltage_dataset.maxy = 1100;
   add_dataset(&maingraph, &voltage_dataset);
 
   graph_dataset_t setpoint_dataset = create_dataset("Setpoint", C_BLUE);

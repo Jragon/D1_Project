@@ -4,7 +4,7 @@
 static uint16_t _get_x_val(uint8_t count, uint16_t x_offset,
                            graph_display_options_t* opts);
 static uint16_t _get_y_val(uint16_t y, uint16_t starty, uint16_t height,
-                           uint16_t margin);
+                           uint16_t margin, uint16_t scale);
 
 graph_point_t* new_point(uint16_t x, uint16_t y, graph_point_t* next) {
   graph_point_t* new = (graph_point_t*)malloc(sizeof(graph_point_t));
@@ -61,8 +61,12 @@ graph_t create_graph(uint8_t size, uint16_t startx, uint16_t starty,
 }
 
 graph_dataset_t create_dataset(char* name, UG_COLOR colour) {
-  return (graph_dataset_t){
-      .name = name, .count = 0, .head = 0, .colour = colour, .redraw = 1};
+  return (graph_dataset_t){.name = name,
+                           .count = 0,
+                           .head = 0,
+                           .colour = colour,
+                           .redraw = 1,
+                           .maxy = 0};
 }
 
 void add_dataset(graph_t* graph, graph_dataset_t* dataset) {
@@ -127,7 +131,7 @@ void draw_dataset_points(graph_t* graph, graph_dataset_t* dataset,
   uint16_t x1, y1, y2;
 
   uint16_t x_offset =
-      ((opts->width - opts->margin) * (uint16_t)100) / graph->size;
+      ((opts->width - opts->margin) * GRAPH_X_OFFSET_DIVISOR) / graph->size;
 
   uint16_t graph_height = opts->height;
   uint16_t graph_starty = opts->starty;
@@ -138,26 +142,33 @@ void draw_dataset_points(graph_t* graph, graph_dataset_t* dataset,
     graph_starty += graph->disp.legend_height;
   }
 
+  uint16_t graph_scale =
+      (dataset->maxy) ? (graph_height * GRAPH_SCALE_DIVISOR) / dataset->maxy
+                      : GRAPH_SCALE_DIVISOR;
+
   graph_point_t* cursor = dataset->head;
 
   while (cursor != 0) {
-    if (cursor->y <= graph_height - opts->margin) {
+    if ((cursor->y * graph_scale) / GRAPH_SCALE_DIVISOR <=
+        graph_height - opts->margin) {
       // draw left to right
       x1 = _get_x_val(count, x_offset, opts);
-      y1 = _get_y_val(cursor->y, graph_starty, graph_height, opts->margin);
+      y1 = _get_y_val(cursor->y, graph_starty, graph_height, opts->margin,
+                      graph_scale);
 
       if (opts->draw_point) UG_DrawCircle(x1, y1, opts->circle_radius, colour);
 
       if (opts->draw_line) {
         if (cursor->next != 0) {
           y2 = _get_y_val(cursor->next->y, graph_starty, graph_height,
-                          opts->margin);
+                          opts->margin, graph_scale);
           if (dataset->redraw != 0) {
             UG_DrawLine(
                 x1, y2, _get_x_val(count + 1, x_offset, opts),
                 _get_y_val((count == graph->size - 2) ? dataset->finalval
                                                       : cursor->next->next->y,
-                           graph_starty, graph_height, opts->margin),
+                           graph_starty, graph_height, opts->margin,
+                           graph_scale),
                 C_BLACK);
           }
           UG_DrawLine(x1, y1, _get_x_val(count + 1, x_offset, opts), y2,
@@ -183,11 +194,13 @@ void add_point(uint16_t x, uint16_t y, graph_t* graph,
 
 uint16_t _get_x_val(uint8_t count, uint16_t x_offset,
                     graph_display_options_t* opts) {
-  return opts->width - opts->margin - (count * x_offset) / 100;
+  return opts->width - opts->margin -
+         (count * x_offset) / GRAPH_X_OFFSET_DIVISOR;
 }
 
 uint16_t _get_y_val(uint16_t y, uint16_t starty, uint16_t height,
-                    uint16_t margin) {
-  return (y <= height - margin) ? (starty + height - margin) - y
-                                : starty + margin;
+                    uint16_t margin, uint16_t scale) {
+  uint16_t scaled_y = ((y * scale) / GRAPH_SCALE_DIVISOR);
+  return (scaled_y <= height - margin) ? (starty + height - margin) - scaled_y
+                                       : starty + margin;
 }

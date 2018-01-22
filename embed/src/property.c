@@ -43,8 +43,8 @@ void draw_plabel(property_t *prop) {
 
 void draw_pval(property_t *prop) {
   char valstr[15];
-  snprintf(valstr, 15, "%10.8f", prop->val);
-
+  // snprintf(valstr, 15, "%10.8f", prop->val);
+  snprintf(valstr, 15, "%5u", prop->val);
   UG_PutString(prop->x + strwidth(prop->label), prop->y, valstr);
 }
 

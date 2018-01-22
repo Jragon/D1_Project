@@ -13,7 +13,7 @@ typedef void (*update_callback_t)(struct prop *, graph_t *);
 typedef struct prop {
   uint16_t x, y;
   char *label;
-  float val;
+  uint16_t val;
   graph_dataset_t *dataset;
   update_callback_t update;
 } property_t;
