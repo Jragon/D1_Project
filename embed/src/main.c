@@ -4,9 +4,11 @@
 #include <stdio.h>
 #include <util/delay.h>
 
+#include "adc.h"
 #include "graph.h"
 #include "gui.h"
 #include "property.h"
+#include "pwm.h"
 #include "rotary.h"
 #include "uart.h"
 
@@ -43,8 +45,14 @@ int main(void) {
   gui_init();
   init_property(20);
   init_rotary();
+  init_pwm();
+  init_adc();
+
+  set_pwm_duty(255);
 
   sei();
+
+  ADC_START;
 
   graph_t maingraph = create_graph(60, 0, 50, 240, 100);
   maingraph.disp.draw_line = 1;
@@ -103,6 +111,13 @@ int main(void) {
   // draw_graph(&voltage_graph);
 
   while (1) {
+    if (adc_read) {
+      console_put_number(ADC);
+      _delay_ms(500);
+      adc_read = 0;
+    }
+
+    continue;
     if (uart_command != NIL) {
       if (uart_command == SET) {
         if (uart_get(&data)) {
