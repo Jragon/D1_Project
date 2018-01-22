@@ -1,6 +1,9 @@
 #include "adc.h"
 
-ISR(ADC_vect) { adc_read = 1; }
+ISR(ADC_vect) {
+  adc_ready = 1;
+  ADC_INT_OFF;
+}
 
 void init_adc() {
   // / by 64 prescalar
@@ -11,7 +14,12 @@ void init_adc() {
   ADCSRB = 0;
 
   // adc interrupt
-  ADCSRA |= _BV(ADIE);
+  ADC_INT_ON;
 
-  adc_read = 0;
+  adc_ready = 0;
+}
+
+uint16_t adc_read() {
+  ADC_INT_ON;
+  return ADC;
 }
