@@ -12,7 +12,7 @@
 #include "rotary.h"
 #include "uart.h"
 
-#define PROP_UPDATE_FREQ 20
+#define PROP_UPDATE_FREQ 100
 #define PROP_UPDATE_TIME 1 / PROP_UPDATE_FREQ
 #define SCALE_DIVISOR 100
 #define VOLTAGE_SCALE 100
@@ -20,28 +20,28 @@
 #define VREF 3.3
 
 // voltage divider resistors (k ohms)
-#define VD_R1 22
-#define VD_R2 4.7
+#define VD_R1 21.9850
+#define VD_R2 4.6735
+// VOLTAGE_DIV = (R1 + R2) / R2
+#define VOLTAGE_DIV 5.7041
 
 void init_usr_led() { DDRB |= _BV(PB7); }
 
-uint16_t calculate_output(uint16_t voltage, uint16_t setpoint,
-                          uint16_t tolerance) {
+int calculate_output(uint16_t voltage, uint16_t setpoint, uint16_t tolerance) {
   static int last_error;
-  static uint32_t integral = 0;
-  uint16_t Kp = 40, Ki = 0, Kd = 0;
+  static long int integral = 0;
+  int Kp = 5, Ki = 2, Kd = 3;
 
   int error = (int)(setpoint - voltage);
 
   // d = (error-last)/dt === (error-last) * freq
-  uint16_t derivative = (error - last_error) * PROP_UPDATE_FREQ;
-  integral = error < tolerance
-                 ? 0
-                 : integral + (error * SCALE_DIVISOR) / PROP_UPDATE_FREQ;
+  // time should be fiarly constant
+  int derivative = (error - last_error);
+  integral = error < tolerance ? 0 : integral + error;
 
   last_error = error;
-  return (Kp * error + (Ki * integral) / SCALE_DIVISOR + Kd * derivative) /
-         SCALE_DIVISOR;
+
+  return (Kp * error + (Ki * integral) + Kd * derivative) / SCALE_DIVISOR;
 }
 
 float adc_to_volts(int adc) {
@@ -82,12 +82,13 @@ void setpoint_update(property_t *prop, graph_t *graph) {
 
 void pwm_update(property_t *prop, graph_t *graph) {
   static uint16_t lastval = 0;
-  uint16_t output =
-      calculate_output(properties.p[1]->val, properties.p[0]->val, 50);
 
-  prop->val = output < 255 ? output : 255;
+  uint16_t output = prop->val + calculate_output(properties.p[1]->val,
+                                                 properties.p[0]->val, 50);
+
+  prop->val = output < PWM_DUTY_MAX ? output : PWM_DUTY_MAX;
   // prop->val = (properties.p[1]->val < properties.p[0]->val)
-  //                 ? prop->val < 255 ? prop->val + 1 : prop->val
+  //                 ? prop->val < PWM_DUTY_MAX ? prop->val + 1 : prop->val
   //                 : prop->val != 0 ? prop->val - 1 : prop->val;
 
   set_pwm_duty(prop->val);
@@ -107,7 +108,7 @@ int main(void) {
   init_uart0();
   init_usr_led();
   gui_init();
-  init_property(20);
+  init_property(PROP_UPDATE_FREQ);
   // init_rotary();
   init_pwm();
   init_adc();
@@ -133,7 +134,7 @@ int main(void) {
   add_dataset(&maingraph, &setpoint_dataset);
 
   graph_dataset_t pwm_dataset = create_dataset("PWM Duty", C_ORANGE_RED);
-  pwm_dataset.maxy = PWM_DUTY_MAX + 10;
+  pwm_dataset.maxy = PWM_DUTY_MAX + 50;
   add_dataset(&maingraph, &pwm_dataset);
 
   draw_graph_legend(&maingraph);
@@ -184,7 +185,7 @@ int main(void) {
           if (set_flag) {
             UG_ConsolePutString("\nSET: ");
             console_put_number(data);
-            setpoint.val = data;
+            setpoint.val = data * 10;
             draw_pval(&setpoint);
             uart_command = NIL;
             set_flag = 0;
