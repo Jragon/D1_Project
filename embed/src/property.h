@@ -5,7 +5,7 @@
 #include "graph.h"
 #include "gui.h"
 
-#define MAX_PROPERTIES 2
+#define MAX_PROPERTIES 3
 
 struct prop;
 typedef void (*update_callback_t)(struct prop *, graph_t *);
@@ -13,7 +13,7 @@ typedef void (*update_callback_t)(struct prop *, graph_t *);
 typedef struct prop {
   uint16_t x, y;
   char *label;
-  uint16_t val;
+  uint16_t val, fixed_point_divisor;
   graph_dataset_t *dataset;
   update_callback_t update;
 } property_t;

@@ -4,7 +4,7 @@
 #include <avr/io.h>
 #include "gui.h"
 
-#define MAX_DATA_SET_PER_GRAPH 2
+#define MAX_DATA_SET_PER_GRAPH 3
 #define GRAPH_SCALE_DIVISOR 100
 #define GRAPH_X_OFFSET_DIVISOR 100
 

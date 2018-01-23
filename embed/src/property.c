@@ -44,7 +44,11 @@ void draw_plabel(property_t *prop) {
 void draw_pval(property_t *prop) {
   char valstr[15];
   // snprintf(valstr, 15, "%10.8f", prop->val);
-  snprintf(valstr, 15, "%5u", prop->val);
+  if (prop->fixed_point_divisor == 0)
+    snprintf(valstr, 15, "%5u", prop->val);
+  else
+    snprintf(valstr, 15, "%5.3f", (float)prop->val / prop->fixed_point_divisor);
+
   UG_PutString(prop->x + strwidth(prop->label), prop->y, valstr);
 }
 
