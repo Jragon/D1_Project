@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <ncurses/curses.h>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -30,40 +31,74 @@ int uart_test_connection();
 int uart_get_val(uint8_t *val);
 int uart_set_val(uint8_t val);
 
+//int main() {
+//  uint8_t val = 0;
+//
+//  if (RS232_OpenComport(uart.comport, uart.baudrate, uart.mode)) {
+//    printf("Cannot open comport \n");
+//    return 0;
+//  }
+//
+//  if (start_timer(200, uart_timer_callback)) {
+//    printf("Timer initialization error\n");
+//    return 0;
+//  }
+//
+//  if (uart_test_connection()) {
+//    printf("Connection Error\n");
+//    return 0;
+//  } else {
+//    printf("Connection Successful!\n");
+//  }
+//
+//  if(uart_set_val(12)){
+//    printf("Error setting value\n");
+//  } else {
+//    printf("Set value\n");
+//  }
+//
+//  if(uart_get_val(&val)){
+//    printf("did not get val: %d\n", val);
+//  } else {
+//    printf("get val: %d\n", val);
+//  }
+//
+//  return 0;
+//}
+
 int main() {
-  uint8_t val = 0;
+  initscr();
+  echo();
+  if (has_colors)
+    start_color();
 
-  if (RS232_OpenComport(uart.comport, uart.baudrate, uart.mode)) {
-    printf("Cannot open comport \n");
-    return 0;
+  init_pair(1, COLOR_RED, COLOR_BLACK);
+  init_pair(2, COLOR_GREEN, COLOR_BLACK);
+  init_pair(3, COLOR_YELLOW, COLOR_BLACK);
+  init_pair(4, COLOR_BLUE, COLOR_BLACK);
+  init_pair(5, COLOR_CYAN, COLOR_BLACK);
+  init_pair(6, COLOR_MAGENTA, COLOR_BLACK);
+  init_pair(7, COLOR_WHITE, COLOR_BLACK);
+
+  int c;
+  int num = 0;
+  while(1) {
+    c = getch();
+    attrset(COLOR_PAIR(num % 8));
   }
 
-  if (start_timer(200, uart_timer_callback)) {
-    printf("Timer initialization error\n");
-    return 0;
-  }
 
-  if (uart_test_connection()) {
-    printf("Connection Error\n");
-    return 0;
-  } else {
-    printf("Connection Successful!\n");
-  }
 
-  if(uart_set_val(12)){
-    printf("Error setting value\n");
-  } else {
-    printf("Set value\n");
-  }
-
-  if(uart_get_val(&val)){
-    printf("did not get val: %d\n", val);
-  } else {
-    printf("get val: %d\n", val);
-  }
-
-  return 0;
+  // before exit
+  //endwin();
 }
+
+void * resizeHandler(int sig) {
+  int nh, nw;
+  getmaxyx(stdscr, nh, nw);
+
+}
+
 
 int uart_test_connection() {
   int i = 0, conn = -1;
