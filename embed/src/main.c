@@ -25,6 +25,9 @@
 // VOLTAGE_DIV = (R1 + R2) / R2
 #define VOLTAGE_DIV 5.7041
 
+char *var_ch_string(uint8_t *var);
+variable_command_t var_ch_enum(uint8_t *var);
+
 void init_usr_led() { DDRB |= _BV(PB7); }
 
 int calculate_output(uint16_t voltage, uint16_t setpoint, uint16_t tolerance) {
@@ -123,8 +126,6 @@ int main(void) {
 
   properties.graph = &maingraph;
 
-  console_put_number(maingraph.dataset_count);
-
   graph_dataset_t voltage_dataset = create_dataset("Voltage", C_YELLOW);
   voltage_dataset.maxy = 18 * VOLTAGE_SCALE;
   add_dataset(&maingraph, &voltage_dataset);
@@ -138,10 +139,6 @@ int main(void) {
   add_dataset(&maingraph, &pwm_dataset);
 
   draw_graph_legend(&maingraph);
-
-  console_put_number(maingraph.dataset_count);
-  UG_ConsolePutString(maingraph.title);
-  UG_ConsolePutString("\n");
 
   property_t setpoint = {.x = 0,
                          .y = 0,
@@ -175,30 +172,68 @@ int main(void) {
   add_property(&pwm_output);
   draw_property(&pwm_output);
 
-  uint8_t data;
-  int set_flag = 0;
+  UG_ConsolePutString("*** Boost initialised ***");
+
+  uint8_t data8;
+  uint16_t set_voltage, get_return;
+  uint8_t sp[5];
+  int set_flag = 0, var_name = 0;
 
   while (1) {
     if (uart_command != NIL) {
       if (uart_command == SET) {
-        if (uart_get(&data)) {
+        if (uart_get(&data8)) {
           if (set_flag) {
+            set_voltage = data8 << 8;
+            while (!uart_get(&data8))
+              ;
+            set_voltage |= data8;
+
             UG_ConsolePutString("\nSET: ");
-            console_put_number(data);
-            setpoint.val = data * 10;
+            console_put_float((float)set_voltage / VOLTAGE_SCALE);
+            setpoint.val = set_voltage;
             draw_pval(&setpoint);
             uart_command = NIL;
             set_flag = 0;
-          } else if (data == 's') {
+          } else if (data8 == 's') {
             set_flag = 1;
           }
         }
       } else if (uart_command == GET) {
-        uint8_t sp = (uint8_t)trunc(setpoint.val);
-        uart_put(&sp);
-        UG_ConsolePutString("\nSending: ");
-        console_put_number(sp);
-        uart_command = NIL;
+        if (!var_name) {
+          if (uart_get(&data8)) {
+            var_name = var_ch_enum(&data8);
+          }
+        } else {
+          sp[0] = uart_command_char[GET];        // get command var
+          sp[1] = uart_variable_char[var_name];  // getting sp
+
+          if (var_name == SPT)
+            get_return = setpoint.val;
+          else if (var_name == VOLT)
+            get_return = voltage.val;
+          else if (var_name == PWM)
+            get_return = pwm_output.val;
+          else
+            get_return = 0;
+
+          sp[2] = get_return >> 8;
+          sp[3] = get_return & 0xFF;
+          sp[4] = '\0';
+
+          uart_put_array(sp, 5);
+          UG_ConsolePutString("\nSending: ");
+          UG_ConsolePutString(var_ch_string(&uart_variable_char[var_name]));
+          UG_ConsolePutString(" - ");
+
+          if (var_name == PWM)
+            console_put_number(get_return);
+          else
+            console_put_float(((float)get_return / VOLTAGE_SCALE));
+
+          uart_command = NIL;
+          var_name = 0;
+        }
       } else if (uart_command == CONN) {
         if (uart_put(&uart_command_char[uart_command]))
           UG_ConsolePutString("\n** Connection Successful ** \n");
@@ -211,4 +246,26 @@ int main(void) {
 
     update_properties();
   }
+}
+
+char *var_ch_string(uint8_t *var) {
+  if ((char)*var == uart_variable_char[SPT])
+    return "Setpoint";
+  else if ((char)*var == uart_variable_char[VOLT])
+    return "Voltage";
+  else if ((char)*var == uart_variable_char[PWM])
+    return "PWM OCR2A";
+  else
+    return "Unknown Var";
+}
+
+variable_command_t var_ch_enum(uint8_t *var) {
+  if ((char)*var == uart_variable_char[SPT])
+    return SPT;
+  else if ((char)*var == uart_variable_char[VOLT])
+    return VOLT;
+  else if ((char)*var == uart_variable_char[PWM])
+    return PWM;
+  else
+    return UNKNOWN_VAR;
 }

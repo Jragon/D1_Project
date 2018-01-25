@@ -7,6 +7,7 @@ static rbIndex_t _rxBuffIndex, _txBuffIndex;
 static uint8_t _rxBuffMem[UART_BUFFER_SIZE], _txBuffMem[UART_BUFFER_SIZE];
 
 uint8_t uart_command_char[4] = {0, 's', 'g', 'c'};
+uint8_t uart_variable_char[4] = {0, 't', 'v', 'p'};
 
 // receive bit isr
 ISR(USART0_RX_vect) {
@@ -61,6 +62,18 @@ int uart_get(uint8_t *data) {
   }
 }
 
+int uart_get_16(uint16_t *data) {
+  uint8_t val1, val2;
+
+  if (ring_buffer_get(_rxBuffIndex, &val1) == 1 &&
+      ring_buffer_get(_rxBuffIndex, &val2) == 1) {
+    *data = val1 << 8 | val2;
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
 int uart_put(uint8_t *data) {
   if (ring_buffer_put(_txBuffIndex, data) == 1) {
     // enable transfer complete interrupt
@@ -72,6 +85,17 @@ int uart_put(uint8_t *data) {
     // ring buffer full or something
     return 0;
   }
+}
+
+int uart_put_array(uint8_t *data, int count) {
+  int i, ret = 1;
+  for (i = 0; i < count; i++) {
+    if (uart_put(data) == 0) ret = 0;
+
+    data++;
+  }
+
+  return ret;
 }
 
 void uart_put_ch(char ch) {

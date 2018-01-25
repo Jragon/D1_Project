@@ -12,7 +12,6 @@ void gui_init() {
   UG_ConsoleSetArea(0, 200, 240, 320);
   UG_ConsoleSetForecolor(C_GREEN_YELLOW);
   UG_ConsoleSetBackcolor(C_BLACK);
-  UG_ConsolePutString("Hey!");
 }
 
 uint16_t strwidth(char *str) {
@@ -38,5 +37,11 @@ void console_put_ch(char ch) {
 void console_put_number(uint16_t number) {
   char buffer[8];
   snprintf(buffer, 8, "%u; ", number);
+  UG_ConsolePutString(buffer);
+}
+
+void console_put_float(float number) {
+  char buffer[8];
+  snprintf(buffer, 8, "%5.2f; ", number);
   UG_ConsolePutString(buffer);
 }
