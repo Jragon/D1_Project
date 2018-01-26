@@ -26,9 +26,9 @@ struct {
           .n = 0,
           .timeout = 10};
 
-typedef enum { SET, GET, CONN } command_t;
+typedef enum { SET, GET, CONN, TEST } command_t;
 typedef enum { UNKNOWN_VAR, SPT, VOLT, PWM } variable_command_t;
-unsigned char uart_command_char[3] = {'s', 'g', 'c'};
+unsigned char uart_command_char[4] = {'s', 'g', 'c', 't'};
 unsigned char uart_variable_char[4] = {0, 't', 'v', 'p'};
 
 void uart_timer_callback(void);
@@ -38,8 +38,10 @@ int uart_get_val(uint8_t *val);
 int uart_get_val_16(uint16_t *val, uint8_t *var, variable_command_t var_name);
 int uart_set_val(uint16_t val);
 char *getline(void);
-int parse_commands();
+char *getline_uart(void);
+    int parse_commands();
 char *decodeVariable(uint8_t *var);
+
 
 int main() {
   uint8_t val = 0;
@@ -221,6 +223,19 @@ int parse_commands() {
     else
       printf("%s: %5.2fV\n", decodeVariable(&get_var),
              ((float) get_val/VOLTAGE_SCALAR));
+  } else if (!strcmp(token, "test")) {
+    int n = uart.n;
+    RS232_SendByte(uart.comport, uart_command_char[TEST]);
+    uartsleep;
+    uartsleep;
+    line = getline_uart();
+    while(strcmp(line, "END")){
+      uart_timeout(n += 10);
+      line = getline_uart();
+      printf("%s", line);
+    }
+  } else {
+    printf("Unrecognised command\n");
   }
 
   return 0;
@@ -261,6 +276,38 @@ char *getline(void) {
     }
 
     if ((*line++ = c) == '\n') break;
+  }
+
+  *line = '\0';
+  return linep;
+}
+
+char *getline_uart(void) {
+  char *line = malloc(100), *linep = line;
+  size_t lenmax = 100, len = lenmax;
+  int c, i;
+
+  if (line == NULL) return NULL;
+
+  while (1) {
+    c = uart.buff[i];
+    if (c == EOF) break;
+
+    if (--len == 0) {
+      len = lenmax;
+      char *linen = realloc(linep, lenmax *= 2);
+
+      if (linen == NULL) {
+        free(linep);
+        return NULL;
+      }
+      line = linen + (line - linep);
+      linep = linen;
+    }
+
+    if ((*line++ = c) == '\n') break;
+    i++;
+
   }
 
   *line = '\0';

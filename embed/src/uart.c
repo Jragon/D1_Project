@@ -6,7 +6,7 @@
 static rbIndex_t _rxBuffIndex, _txBuffIndex;
 static uint8_t _rxBuffMem[UART_BUFFER_SIZE], _txBuffMem[UART_BUFFER_SIZE];
 
-uint8_t uart_command_char[4] = {0, 's', 'g', 'c'};
+uint8_t uart_command_char[5] = {0, 's', 'g', 'c', 't'};
 uint8_t uart_variable_char[4] = {0, 't', 'v', 'p'};
 
 // receive bit isr
@@ -14,12 +14,16 @@ ISR(USART0_RX_vect) {
   uint8_t data = UDR0;
   if (ring_buffer_put(_rxBuffIndex, &data) == 1) {
     if (uart_command == NIL) {
-      if (data == 's') {
+      if (data == uart_command_char[SET]) {
         uart_command = SET;
-      } else if (data == 'g') {
+      } else if (data == uart_command_char[GET]) {
         uart_command = GET;
-      } else if (data == 'c') {
+      } else if (data == uart_command_char[CONN]) {
         uart_command = CONN;
+      } else if (data == uart_command_char[TEST]) {
+        uart_command = TEST;
+      } else {
+        uart_command = NIL;
       }
     }
   }

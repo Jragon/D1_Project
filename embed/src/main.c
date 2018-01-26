@@ -30,6 +30,8 @@ variable_command_t var_ch_enum(uint8_t *var);
 
 void init_usr_led() { DDRB |= _BV(PB7); }
 
+int test_pwm_flag = 0;
+
 int calculate_output(uint16_t voltage, uint16_t setpoint, uint16_t tolerance) {
   static int last_error;
   static long int integral = 0;
@@ -53,6 +55,21 @@ float adc_to_volts(int adc) {
 
 uint16_t volts_to_adc(float voltage) {
   return (uint16_t)(voltage / (VD_R1 + VD_R2) * VD_R2 * ADCMAX / VREF);
+}
+
+void send_status_uart() {
+  int i, n;
+  char buff[100];
+
+  for (i = 0; i < MAX_PROPERTIES; i++) {
+    n = snprintf(buff, 100, "%u, ", properties.p[i]->val);
+    if (n > 0)
+      uart_put_array((uint8_t *)buff, n);
+    else
+      UG_ConsolePutString("Error Sending UART Status\n");
+  }
+
+  uart_put_array((uint8_t *)"\n", 1);
 }
 
 void voltage_update(property_t *prop, graph_t *graph) {
@@ -85,14 +102,34 @@ void setpoint_update(property_t *prop, graph_t *graph) {
 
 void pwm_update(property_t *prop, graph_t *graph) {
   static uint16_t lastval = 0;
+  static uint8_t divider = 0;
 
-  uint16_t output = prop->val + calculate_output(properties.p[1]->val,
-                                                 properties.p[0]->val, 50);
+  if (test_pwm_flag) {
+    send_status_uart();
 
-  prop->val = output < PWM_DUTY_MAX ? output : PWM_DUTY_MAX;
-  // prop->val = (properties.p[1]->val < properties.p[0]->val)
-  //                 ? prop->val < PWM_DUTY_MAX ? prop->val + 1 : prop->val
-  //                 : prop->val != 0 ? prop->val - 1 : prop->val;
+    if (prop->val < PWM_DUTY_MAX) {
+      // freq div
+      if (divider < 2) {
+        divider++;
+      } else {
+        prop->val++;
+        divider = 0;
+      }
+    } else {
+      uart_put_array((uint8_t *)"END\n", 5);
+      prop->val = 0;
+      uart_command = NIL;
+      test_pwm_flag = 0;
+    }
+  } else {
+    uint16_t output = prop->val + calculate_output(properties.p[1]->val,
+                                                   properties.p[0]->val, 50);
+
+    prop->val = output < PWM_DUTY_MAX ? output : PWM_DUTY_MAX;
+    // prop->val = (properties.p[1]->val < properties.p[0]->val)
+    //                 ? prop->val < PWM_DUTY_MAX ? prop->val + 1 : prop->val
+    //                 : prop->val != 0 ? prop->val - 1 : prop->val;
+  }
 
   set_pwm_duty(prop->val);
 
@@ -172,7 +209,7 @@ int main(void) {
   add_property(&pwm_output);
   draw_property(&pwm_output);
 
-  UG_ConsolePutString("*** Boost initialised ***");
+  UG_ConsolePutString("*** Boost initialised ***\n");
 
   uint8_t data8;
   uint16_t set_voltage, get_return;
@@ -241,6 +278,13 @@ int main(void) {
           UG_ConsolePutString("\n** Connection Error ** \n");
 
         uart_command = NIL;
+      } else if (uart_command == TEST) {
+        if (!test_pwm_flag) {
+          test_pwm_flag = 1;
+          UG_ConsolePutString("\n** Starting PWM Test **\n");
+          pwm_output.val = 0;
+          // leave uart_command = NIL;
+        }
       }
     }
 

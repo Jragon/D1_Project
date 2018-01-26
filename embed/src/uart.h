@@ -7,9 +7,9 @@
 #define UART_PRESCALE (F_CPU / (UART_BAUD * 16L) - 1)
 #define UART_BUFFER_SIZE 16
 
-typedef enum { NIL, SET, GET, CONN } command_t;
+typedef enum { NIL, SET, GET, CONN, TEST } command_t;
 typedef enum { UNKNOWN_VAR, SPT, VOLT, PWM } variable_command_t;
-uint8_t uart_command_char[4];
+uint8_t uart_command_char[5];
 uint8_t uart_variable_char[4];
 
 volatile command_t uart_command;
